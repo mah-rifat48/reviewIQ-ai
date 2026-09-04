@@ -176,8 +176,17 @@ export class AiInsightsController {
         ? {
             photo_reference: photoRef,
             photo_url: `/insights/place-photo?photo_reference=${encodeURIComponent(photoRef)}`,
+            width: 800,
+            height: 600,
+            html_attributions: [],
           }
-        : null,
+        : {
+            photo_reference: '',
+            photo_url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop',
+            width: 800,
+            height: 600,
+            html_attributions: [],
+          },
       rating: ctx.rating,
       performance_by_category: ctx.performance_by_category,
       business_goals: ctx.business_goals,
