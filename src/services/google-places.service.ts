@@ -274,47 +274,54 @@ export class GooglePlacesService {
     const placeIds: string[] = [];
 
     for (const bInput of businessesInput) {
-      let placeId = bInput.place_id;
-      const rawLoc = bInput.location || {};
+      const bName = bInput.business_name || bInput.name || 'Business';
+      const bCategory = bInput.business_category || bInput.category || 'Retail';
+      const locationsList = Array.isArray(bInput.locations) && bInput.locations.length > 0
+        ? bInput.locations
+        : [bInput.location || {}];
 
-      if (!placeId) {
-        if (rawLoc.google_maps_url) {
-          try {
-            placeId = await this.expandAndExtractPlaceId(rawLoc.google_maps_url);
-          } catch {
-            // Ignore error and attempt fallback search below
-          }
-        }
-
-        if (!placeId && (rawLoc.address_or_city || bInput.business_name)) {
-          const query = `${bInput.business_name} ${rawLoc.address_or_city || ''}`.trim();
-          try {
-            placeId = await this.searchPlaceId(query);
-          } catch {
-            // Ignore search error to use fallback generated place_id
-          }
-        }
+      for (const rawLoc of locationsList) {
+        let placeId = bInput.place_id || rawLoc.place_id;
 
         if (!placeId) {
-          placeId = `place_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+          if (rawLoc.google_maps_url) {
+            try {
+              placeId = await this.expandAndExtractPlaceId(rawLoc.google_maps_url);
+            } catch {
+              // Ignore error and attempt fallback search below
+            }
+          }
+
+          if (!placeId && (rawLoc.address_or_city || bName)) {
+            const query = `${bName} ${rawLoc.address_or_city || ''}`.trim();
+            try {
+              placeId = await this.searchPlaceId(query);
+            } catch {
+              // Ignore search error to use fallback generated place_id
+            }
+          }
+
+          if (!placeId) {
+            placeId = `place_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+          }
         }
+
+        const placeDetails = await this.fetchPlaceDetails(placeId);
+        await this.placeStore.upsertPlaceData(placeDetails);
+        placeIds.push(placeId);
+
+        const savedB = {
+          user_id: userId,
+          business_name: bName,
+          business_category: bCategory || placeDetails.types?.[0],
+          business_address: placeDetails.formatted_address || rawLoc.address_or_city || 'City Address',
+          input_address: rawLoc.address_or_city,
+          place_id: placeId,
+          place_payload: placeDetails,
+          raw_input: bInput,
+        };
+        savedBusinesses.push(savedB);
       }
-
-      const placeDetails = await this.fetchPlaceDetails(placeId);
-      await this.placeStore.upsertPlaceData(placeDetails);
-      placeIds.push(placeId);
-
-      const savedB = {
-        user_id: userId,
-        business_name: bInput.business_name,
-        business_category: bInput.business_category || placeDetails.types?.[0],
-        business_address: placeDetails.formatted_address,
-        input_address: rawLoc.address_or_city,
-        place_id: placeId,
-        place_payload: placeDetails,
-        raw_input: bInput,
-      };
-      savedBusinesses.push(savedB);
     }
 
     const primaryPlaceId = placeIds[0];
