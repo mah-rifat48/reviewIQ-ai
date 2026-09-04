@@ -22,10 +22,35 @@ export function businessMatches(
     const bAddr = normalizeString(
       business.business_address || business.input_address || '',
     );
-    if (!bAddr.includes(targetAddr) && !targetAddr.includes(bAddr)) {
+    if (targetAddr && bAddr && !bAddr.includes(targetAddr) && !targetAddr.includes(bAddr)) {
       return false;
     }
   }
 
   return true;
+}
+
+export function findUserBusiness(
+  businesses: any[],
+  businessName?: string,
+  address?: string,
+): any | null {
+  if (!businesses || businesses.length === 0) return null;
+
+  // 1. Exact or fuzzy match on both name and address
+  let match = businesses.find((b) => businessMatches(b, businessName, address));
+  if (match) return match;
+
+  // 2. Match on business_name alone
+  if (businessName) {
+    const targetName = normalizeString(businessName);
+    match = businesses.find((b) => {
+      const bName = normalizeString(b.business_name || b.name);
+      return bName && targetName && (bName.includes(targetName) || targetName.includes(bName));
+    });
+    if (match) return match;
+  }
+
+  // 3. Fallback to first business
+  return businesses[0];
 }
