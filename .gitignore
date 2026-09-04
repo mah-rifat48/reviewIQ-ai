@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build Output
+dist/
+build/
+
+# Environment Variables
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# Database Cache (SQLite)
+*.sqlite
+*.sqlite3
+cache.sqlite3
+data/
+
+# Logs & System
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.tsbuildinfo
