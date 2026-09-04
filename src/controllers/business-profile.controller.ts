@@ -4,12 +4,14 @@ import {
   Patch,
   Query,
   Body,
+  HttpCode,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { BusinessStoreService } from '../db/business-store.service';
 import { GooglePlacesService } from '../services/google-places.service';
+import { UpdateBusinessProfileDto } from '../dto/business-profile.dto';
 
 @ApiTags('Business Profile')
 @Controller('business-profile')
@@ -20,6 +22,8 @@ export class BusinessProfileController {
   ) {}
 
   @Get()
+  @ApiResponse({ status: 200, description: 'Successful Response' })
+  @ApiResponse({ status: 404, description: 'Business not found.' })
   async getBusinessProfileRoute(
     @Query('user_id') userId: string,
     @Query('business_name') businessName: string,
@@ -32,26 +36,21 @@ export class BusinessProfileController {
     );
 
     if (!result) {
-      return {
-        user_id: userId,
-        business_name: businessName || 'Business',
-        category: 'General',
-        location: location || 'Location',
-        place_id: 'default_place',
-        map_url: null,
-        phone_no: null,
-        website: null,
-      };
+      throw new HttpException('Business not found.', HttpStatus.NOT_FOUND);
     }
     return result;
   }
 
   @Patch()
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: UpdateBusinessProfileDto, required: false })
+  @ApiResponse({ status: 200, description: 'Successful Response' })
+  @ApiResponse({ status: 404, description: 'Business not found.' })
   async updateBusinessProfileRoute(
     @Query('user_id') userId: string,
     @Query('existing_business_name') existingBusinessName: string,
     @Query('existing_location') existingLocation: string,
-    @Body() body: any = {},
+    @Body() body: UpdateBusinessProfileDto = {},
     @Query('new_business_name') qNewBusinessName?: string,
     @Query('category') qCategory?: string,
     @Query('new_location') qNewLocation?: string,

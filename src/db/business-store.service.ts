@@ -79,6 +79,14 @@ export class BusinessStoreService implements OnModuleInit {
     return rows.map((r) => this.parseRow(r));
   }
 
+  async getAllUserBusinesses(): Promise<UserBusinessRow[]> {
+    const rows = await this.dbService.all(
+      'SELECT * FROM user_businesses ORDER BY updated_at DESC',
+      [],
+    );
+    return rows.map((r) => this.parseRow(r));
+  }
+
   async saveUserBusinesses(
     contextId: number,
     userId: string,
@@ -232,11 +240,10 @@ export class BusinessStoreService implements OnModuleInit {
     );
 
     return {
-      user_id: userId,
       business_name: match.business_name,
-      category: match.business_category || (place ? place.types : null),
-      location: match.business_address || match.input_address || location || 'Default Location',
-      place_id: match.place_id,
+      category: match.business_category || (place ? place.types?.[0] : null),
+      location: match.business_address || match.input_address || location,
+      input_location: match.input_address || location,
       map_url: `https://www.google.com/maps/place/?q=place_id:${match.place_id}`,
       phone_no: match.phone_no || (place ? place.formatted_phone_number : null),
       website: match.website || (place ? place.website : null),

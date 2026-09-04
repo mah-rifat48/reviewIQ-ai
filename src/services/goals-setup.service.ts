@@ -101,14 +101,14 @@ export class GoalsSetupService {
         businessMatches(sb, bName, bLoc),
       );
 
-      const matchedBusiness = matchedLocations[0] || ownBusinesses[0];
-
-      if (!matchedBusiness) {
+      if (matchedLocations.length === 0) {
         throw new HttpException(
-          `Business '${bName}' not found for user ${userId}. Submit POST /businesses/fetch first.`,
+          'Business not found for this user, business_name, and location. Submit POST /businesses/fetch first, then use one of the saved location addresses.',
           HttpStatus.NOT_FOUND,
         );
       }
+
+      const matchedBusiness = matchedLocations[0];
 
       const selectedPlaceId = matchedBusiness.place_id;
       const context = await this.businessContextStore.getLatestBusinessContext(

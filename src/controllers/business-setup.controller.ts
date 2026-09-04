@@ -7,14 +7,17 @@ import {
   Body,
   Query,
   Param,
+  HttpCode,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { GooglePlacesService } from '../services/google-places.service';
 import { BusinessStoreService } from '../db/business-store.service';
 import { UserDataStoreService } from '../db/user-data-store.service';
 import { businessMatches } from '../utils/business-matching';
+import { BusinessSetupRequestDto } from '../dto/business-setup.dto';
+import { AddBusinessLocationRequestDto } from '../dto/add-location.dto';
 
 @ApiTags('Business Setup')
 @Controller('businesses')
@@ -26,12 +29,18 @@ export class BusinessSetupController {
   ) {}
 
   @Post('fetch')
-  async fetchBusinessData(@Body() payload: any) {
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: BusinessSetupRequestDto, description: 'Business fetch request body' })
+  @ApiResponse({ status: 200, description: 'Successful Response' })
+  async fetchBusinessData(@Body() payload: BusinessSetupRequestDto) {
     return this.googlePlacesService.fetchAndSaveSetup(payload);
   }
 
   @Patch('locations')
-  async addBusinessLocation(@Body() payload: any) {
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: AddBusinessLocationRequestDto, description: 'Add location request body' })
+  @ApiResponse({ status: 200, description: 'Successful Response' })
+  async addBusinessLocation(@Body() payload: AddBusinessLocationRequestDto) {
     return this.googlePlacesService.addBusinessLocation(payload);
   }
 

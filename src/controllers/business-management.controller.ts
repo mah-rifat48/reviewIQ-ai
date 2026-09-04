@@ -4,13 +4,15 @@ import {
   Patch,
   Query,
   Body,
+  HttpCode,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { BusinessStoreService } from '../db/business-store.service';
 import { BusinessManagementService } from '../services/business-management.service';
 import { businessMatches } from '../utils/business-matching';
+import { BusinessAccountStatusRequestDto } from '../dto/business-management.dto';
 
 @ApiTags('Business Management')
 @Controller('businesses')
@@ -29,7 +31,11 @@ export class BusinessManagementController {
   }
 
   @Patch('management')
-  async updateBusinessAccountStatus(@Body() payload: any) {
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: BusinessAccountStatusRequestDto })
+  @ApiResponse({ status: 200, description: 'Successful Response' })
+  @ApiResponse({ status: 404, description: 'Business not found for this user.' })
+  async updateBusinessAccountStatus(@Body() payload: BusinessAccountStatusRequestDto) {
     const result = await this.businessStore.updateAccountStatus(
       payload.user_id,
       payload.business_name,

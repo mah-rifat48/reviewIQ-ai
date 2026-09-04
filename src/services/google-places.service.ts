@@ -378,12 +378,22 @@ export class GooglePlacesService {
     await this.businessStore.saveUserBusinesses(contextId, userId, savedBusinesses);
 
     return {
+      status: 'saved',
       user_id: userId,
       context_id: contextId,
-      report_frequency: reportFrequency,
-      goals,
-      businesses: savedBusinesses,
-      competitor_places: competitorPlaces,
+      default_place_id: primaryPlaceId,
+      places: savedBusinesses.map((b) => ({
+        place_id: b.place_id,
+        name: b.place_payload?.name || b.business_name,
+        formatted_address: b.place_payload?.formatted_address || b.business_address,
+        rating: b.place_payload?.rating ?? 4.5,
+        user_ratings_total: b.place_payload?.user_ratings_total ?? 0,
+        reviews_saved: b.place_payload?.reviews?.length || 0,
+      })),
+      competitors: competitorPlaces,
+      competitor_errors: [],
+      reviews_note: 'Google Place Details returns up to five reviews per place.',
+      count: savedBusinesses.length,
     };
   }
 

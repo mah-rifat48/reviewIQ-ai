@@ -5,10 +5,11 @@ import {
   Query,
   Body,
   Res,
+  HttpCode,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
@@ -20,6 +21,7 @@ import { DashboardAnalysisService } from '../services/dashboard-analysis.service
 import { OverviewService } from '../services/overview.service';
 import { AiInsightsService } from '../services/ai-insights.service';
 import { findUserBusiness } from '../utils/business-matching';
+import { ActionableRecommendationStatusDto } from '../dto/actionable-recommendation.dto';
 
 @ApiTags('AI Insights')
 @Controller('insights')
@@ -243,7 +245,10 @@ export class AiInsightsController {
   }
 
   @Patch('actionable-recommendations/status')
-  async updateActionableRecommendationStatus(@Body() payload: any) {
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: ActionableRecommendationStatusDto })
+  @ApiResponse({ status: 200, description: 'Successful Response' })
+  async updateActionableRecommendationStatus(@Body() payload: ActionableRecommendationStatusDto) {
     const updated = await this.recommendationStore.updateActionableRecommendationStatus(
       payload.user_id,
       payload.title,
