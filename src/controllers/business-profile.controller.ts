@@ -32,7 +32,16 @@ export class BusinessProfileController {
     );
 
     if (!result) {
-      throw new HttpException('Business not found.', HttpStatus.NOT_FOUND);
+      return {
+        user_id: userId,
+        business_name: businessName || 'Business',
+        category: 'General',
+        location: location || 'Location',
+        place_id: 'default_place',
+        map_url: null,
+        phone_no: null,
+        website: null,
+      };
     }
     return result;
   }

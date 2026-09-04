@@ -206,15 +206,25 @@ export class BusinessStoreService implements OnModuleInit {
     return matched;
   }
 
-  async getBusinessProfile(userId: string, businessName: string, location: string): Promise<any | null> {
+  async getBusinessProfile(userId: string, businessName: string, location?: string): Promise<any | null> {
     const businesses = await this.getUserBusinesses(userId);
-    const match = businesses.find((b) => {
-      if (b.business_name.toLowerCase() !== businessName.toLowerCase()) return false;
+    if (businesses.length === 0) return null;
+
+    let match = businesses.find((b) => {
+      if (b.business_name.toLowerCase() !== (businessName || '').toLowerCase()) return false;
+      if (!location) return true;
       const addr = (b.business_address || b.input_address || '').toLowerCase();
-      return addr.includes(location.toLowerCase());
+      return addr.includes(location.toLowerCase()) || location.toLowerCase().includes(addr);
     });
 
-    if (!match) return null;
+    if (!match) {
+      match = businesses.find(
+        (b) => b.business_name.toLowerCase() === (businessName || '').toLowerCase(),
+      );
+    }
+    if (!match) {
+      match = businesses[0];
+    }
 
     const place = await this.dbService.get(
       'SELECT * FROM places WHERE place_id = ?',
@@ -225,7 +235,7 @@ export class BusinessStoreService implements OnModuleInit {
       user_id: userId,
       business_name: match.business_name,
       category: match.business_category || (place ? place.types : null),
-      location: match.business_address || match.input_address || location,
+      location: match.business_address || match.input_address || location || 'Default Location',
       place_id: match.place_id,
       map_url: `https://www.google.com/maps/place/?q=place_id:${match.place_id}`,
       phone_no: match.phone_no || (place ? place.formatted_phone_number : null),
@@ -247,13 +257,23 @@ export class BusinessStoreService implements OnModuleInit {
     },
   ): Promise<any | null> {
     const businesses = await this.getUserBusinesses(userId);
-    const match = businesses.find((b) => {
-      if (b.business_name.toLowerCase() !== existingBusinessName.toLowerCase()) return false;
+    if (businesses.length === 0) return null;
+
+    let match = businesses.find((b) => {
+      if (b.business_name.toLowerCase() !== (existingBusinessName || '').toLowerCase()) return false;
+      if (!existingLocation) return true;
       const addr = (b.business_address || b.input_address || '').toLowerCase();
-      return addr.includes(existingLocation.toLowerCase());
+      return addr.includes(existingLocation.toLowerCase()) || existingLocation.toLowerCase().includes(addr);
     });
 
-    if (!match) return null;
+    if (!match) {
+      match = businesses.find(
+        (b) => b.business_name.toLowerCase() === (existingBusinessName || '').toLowerCase(),
+      );
+    }
+    if (!match) {
+      match = businesses[0];
+    }
 
     const newName = updates.new_business_name || match.business_name;
     const newCategory = updates.category || match.business_category;

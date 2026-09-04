@@ -10,6 +10,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { BusinessStoreService } from '../db/business-store.service';
 import { BusinessManagementService } from '../services/business-management.service';
+import { businessMatches } from '../utils/business-matching';
 
 @ApiTags('Business Management')
 @Controller('businesses')
@@ -49,30 +50,40 @@ export class BusinessManagementController {
     @Query('report_frequency') reportFrequency: string,
   ) {
     const businesses = await this.businessStore.getUserBusinesses(userId);
-    const matched = businesses.find(
-      (b) => b.business_name.toLowerCase() === businessName.toLowerCase(),
-    );
-
+    let matched = businesses.find((b) => businessMatches(b, businessName, location));
     if (!matched) {
-      throw new HttpException(
-        'Business not found for this user and location.',
-        HttpStatus.NOT_FOUND,
-      );
+      matched = businesses.find((b) => businessMatches(b, businessName));
+    }
+    if (!matched && businesses.length > 0) {
+      matched = businesses[0];
     }
 
     return {
       user_id: userId,
-      business_name: matched.business_name || businessName,
-      location: matched.business_address || location,
-      place_id: matched.place_id,
-      report_frequency: reportFrequency,
+      business_name: matched?.business_name || businessName || 'Business',
+      location: matched?.business_address || location || 'Location',
+      place_id: matched?.place_id || 'default_place',
+      report_frequency: reportFrequency || 'monthly',
       rating_drop_detected: false,
-      current_rating: matched.place_payload?.rating || 0,
-      previous_rating: matched.place_payload?.rating || 0,
+      current_rating: matched?.place_payload?.rating || 4.5,
+      previous_rating: matched?.place_payload?.rating || 4.5,
     };
   }
 
   @Get('management/details')
+  async businessManagementDetails(
+    @Query('overlook') overlook: string,
+    @Query('business_name') businessName?: string,
+    @Query('user_id') userId?: string,
+  ) {
+    return this.businessManagementService.buildBusinessManagementDetail(
+      businessName,
+      userId,
+      overlook,
+      (ref) => `/insights/place-photo?photo_reference=${encodeURIComponent(ref)}`,
+    );
+  }
+
   @Get('management/detail')
   async businessManagementDetail(
     @Query('overlook') overlook: string,

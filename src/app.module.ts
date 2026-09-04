@@ -21,6 +21,7 @@ import { BusinessManagementController } from './controllers/business-management.
 import { BusinessProfileController } from './controllers/business-profile.controller';
 
 import { ReviewAnalysisService } from './services/review-analysis.service';
+import { GoalsSetupService } from './services/goals-setup.service';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ReviewAnalysisService } from './services/review-analysis.service';
   providers: [
     OpenAiService,
     GooglePlacesService,
+    GoalsSetupService,
     DashboardAnalysisService,
     OverviewService,
     ReviewAnalysisService,

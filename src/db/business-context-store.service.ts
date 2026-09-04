@@ -96,4 +96,48 @@ export class BusinessContextStoreService implements OnModuleInit {
       raw_input: JSON.parse(row.raw_input || '{}'),
     };
   }
+
+  async updateBusinessContextGoals(
+    contextId: number,
+    competitorPlaceIds: string[],
+    goals: string[],
+    goalsInput: any,
+  ): Promise<any | null> {
+    const row = await this.dbService.get(
+      'SELECT * FROM business_contexts WHERE id = ?',
+      [contextId],
+    );
+    if (!row) return null;
+
+    let rawInputObj: any = {};
+    try {
+      rawInputObj = JSON.parse(row.raw_input || '{}');
+    } catch {}
+
+    const businessSetup = rawInputObj.business_setup || rawInputObj;
+    const updatedRawInput = {
+      business_setup: businessSetup,
+      goals_setup: goalsInput,
+    };
+
+    await this.dbService.run(
+      `UPDATE business_contexts
+       SET competitor_place_ids = ?, goals = ?, raw_input = ?
+       WHERE id = ?`,
+      [
+        JSON.stringify(competitorPlaceIds),
+        JSON.stringify(goals),
+        JSON.stringify(updatedRawInput),
+        contextId,
+      ],
+    );
+
+    return {
+      ...row,
+      competitor_place_ids: competitorPlaceIds,
+      goals,
+      raw_input: updatedRawInput,
+      place_ids: JSON.parse(row.place_ids || '[]'),
+    };
+  }
 }

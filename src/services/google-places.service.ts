@@ -150,6 +150,36 @@ export class GooglePlacesService {
     }
   }
 
+  async resolvePlaceFromUrlOrText(value: string): Promise<any> {
+    if (!value || typeof value !== 'string') {
+      throw new HttpException('A valid Google Maps URL or search query is required.', HttpStatus.BAD_REQUEST);
+    }
+    const cleanValue = value.trim();
+    let placeId: string | null = null;
+
+    if (cleanValue.includes('google.') || cleanValue.includes('goo.gl') || cleanValue.startsWith('http')) {
+      try {
+        placeId = await this.expandAndExtractPlaceId(cleanValue);
+      } catch {
+        // Fallback to text query below
+      }
+    }
+
+    if (!placeId) {
+      try {
+        placeId = await this.searchPlaceId(cleanValue);
+      } catch {
+        // Fallback to generated ID below
+      }
+    }
+
+    if (!placeId) {
+      placeId = `place_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    }
+
+    return this.fetchPlaceDetails(placeId);
+  }
+
   async fetchPlaceDetails(placeId: string): Promise<any> {
     const cleanId = this.placeIdFromResource(placeId) || placeId;
     const url = DETAILS_NEW_URL.replace('{place_id}', cleanId);

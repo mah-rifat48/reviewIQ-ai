@@ -47,7 +47,7 @@ export class CompetitorController {
     const myReviews = my.user_ratings_total || 0;
 
     const myBusiness = {
-      name: my.name || matched.business_name || 'My Business',
+      name: my.name || matched?.business_name || 'My Business',
       map_url: `https://www.google.com/maps/place/?q=place_id:${placeId}`,
       rating: myRating,
       reviews: myReviews,
