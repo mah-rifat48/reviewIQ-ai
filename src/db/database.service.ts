@@ -13,11 +13,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.configService.get<string>('DATABASE_URL') ||
       'postgresql://aimalya_user:secure_password_here@localhost:5433/aimalya_db?schema=public';
 
+    const isSslNeeded = connectionString.includes('sslmode=require') || connectionString.includes('render.com') || process.env.NODE_ENV === 'production';
+
     this.pool = new Pool({
       connectionString,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
+      ssl: isSslNeeded ? { rejectUnauthorized: false } : false,
     });
 
     try {
