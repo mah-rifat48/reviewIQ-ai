@@ -19,15 +19,27 @@ export class RouteHitStoreService implements OnModuleInit {
     await this.dbService.run(`
       CREATE TABLE IF NOT EXISTS route_hit_events (
         id SERIAL PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        route_path TEXT NOT NULL,
-        created_at TEXT NOT NULL
+        user_id TEXT,
+        route_path TEXT,
+        created_at TEXT
       )
     `);
 
-    await this.dbService.run(
-      'CREATE INDEX IF NOT EXISTS idx_route_hit_events_user_route ON route_hit_events(user_id, route_path, created_at)',
-    );
+    try {
+      await this.dbService.run('ALTER TABLE route_hit_events ADD COLUMN IF NOT EXISTS user_id TEXT');
+      await this.dbService.run('ALTER TABLE route_hit_events ADD COLUMN IF NOT EXISTS route_path TEXT');
+      await this.dbService.run('ALTER TABLE route_hit_events ADD COLUMN IF NOT EXISTS created_at TEXT');
+    } catch {
+      // Ignore if alter table is not supported or column exists
+    }
+
+    try {
+      await this.dbService.run(
+        'CREATE INDEX IF NOT EXISTS idx_route_hit_events_user_route ON route_hit_events(user_id, route_path, created_at)',
+      );
+    } catch {
+      // Safe catch for index creation
+    }
   }
 
   async incrementAndGetHitCount(userId: string, routePath: string): Promise<number> {
