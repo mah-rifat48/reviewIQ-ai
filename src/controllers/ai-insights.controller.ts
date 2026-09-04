@@ -221,8 +221,8 @@ export class AiInsightsController {
     const input = {
       ...ctx.insights_input,
       business: {
-        name: ctx.matched_business.business_name || businessName,
-        address: ctx.matched_business.business_address || address,
+        name: ctx.matched_business?.business_name || businessName,
+        address: ctx.matched_business?.business_address || address,
         category: ctx.context?.business_category,
         rating: ctx.rating,
       },

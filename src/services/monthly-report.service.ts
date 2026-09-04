@@ -15,24 +15,15 @@ const MONTHLY_AI_SCHEMA = {
         additionalProperties: false,
         properties: {
           title: { type: 'string' },
-          priority: { type: 'string' },
           description: { type: 'string' },
+          estimated_impact: { type: 'string' },
         },
-        required: ['title', 'priority', 'description'],
+        required: ['title', 'description', 'estimated_impact'],
       },
     },
     action_plan: {
       type: 'array',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          step: { type: 'number' },
-          action: { type: 'string' },
-          timeline: { type: 'string' },
-        },
-        required: ['step', 'action', 'timeline'],
-      },
+      items: { type: 'string' },
     },
   },
   required: ['executive_summary', 'recommendations', 'action_plan'],
